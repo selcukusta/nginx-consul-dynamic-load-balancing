@@ -1,0 +1,48 @@
+version: '3.6'
+
+services:
+  app:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    networks:
+      - pool
+    ports:
+      - 8888
+    labels:
+      SERVICE_8888_NAME: Tornado_App
+      SERVICE_8888_CHECK_HTTP: /
+      SERVICE_8888_CHECK_INTERVAL: 5s
+      SERVICE_TAGS: Prod
+      SERVICE_443_IGNORE: 'yes'
+  proxy:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    networks:
+      - pool
+    ports:
+      - 8080:8080
+    labels:
+      SERVICE_IGNORE: 'yes'
+  consul:
+    hostname: consul
+    image: progrium/consul
+    command: -server -bootstrap -advertise 10.0.75.1
+    networks:
+      - pool
+    ports:
+      - "8500:8500"
+    labels:
+      SERVICE_IGNORE: 'yes'
+  registrator:
+    image: gliderlabs/registrator:latest
+    command: "-internal consul://consul:8500"
+    networks:
+      - pool
+    depends_on:
+      - consul
+    volumes:
+      - "/var/run/docker.sock:/tmp/docker.sock"
+networks:
+  pool:

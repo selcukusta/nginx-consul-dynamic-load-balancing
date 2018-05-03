@@ -1,0 +1,6 @@
+#!/bin/sh
+
+consul-template \
+    -consul-addr "http://consul:8500" \
+    -template "/etc/consul-templates/index.html.tmpl:/usr/share/nginx/html/index.html" \
+    -template "/etc/consul-templates/app.conf.tmpl:/etc/nginx/conf.d/app.conf:nginx -s reload"
